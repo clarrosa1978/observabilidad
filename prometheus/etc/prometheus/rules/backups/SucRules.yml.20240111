@@ -1,0 +1,209 @@
+groups:
+  - name: Sucursales Equipo DOWN
+    rules:
+    - record: job:Node_Exporter_Suc:Status
+      expr: up{job="Sucursales"}
+
+    - alert: NodeExporterDownSUC
+      expr: job:Node_Exporter_Suc:Status == 0
+      for: 2m
+      annotations:
+        summary: "Node Exporter is DOWN"
+        description: "Node Exporter del {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+  - name: Sucursales Uso de FileSystem
+    rules:    
+    - record: job:node_FileSystem_bytes:available
+      expr: round((node_filesystem_size_bytes{fstype=~"ext.*|xfs",job="Sucursales",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs",job="Sucursales",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"}) * 100 / (node_filesystem_avail_bytes{fstype=~"ext.*|xfs",job="Sucursales",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"} + (node_filesystem_size_bytes{fstype=~"ext.*|xfs",job="Sucursales",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs",job="Sucursales",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"})), 0.1) 
+
+    - alert: FileSystem Warning
+      expr: 80 < (job:node_FileSystem_bytes:available) < 90
+      for: 2m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: Warning"
+        description: "FileSystem {{ $labels.mountpoint }} de host {{ $labels.instance }} valor actual {{ $value }}% supera el 80%."
+
+    - alert: FileSystem Critical
+      expr: (job:node_FileSystem_bytes:available) >= 90
+      for: 2m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: CRITICAL"
+        description: "FileSystem {{ $labels.mountpoint }} de host {{ $labels.instance }} valor actual {{ $value }}% supera el 90%."
+
+
+#  - name: Sucursales Uso de FileSystem
+#    rules:
+    - record: job:node_FileSystem_Digital:available
+      expr: round((node_filesystem_size_bytes{fstype=~"ext.*|xfs",job="Sucursales",mountpoint="/digital"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs",job="Sucursales",mountpoint="/digital"}) * 100 / (node_filesystem_avail_bytes{fstype=~"ext.*|xfs",job="Sucursales",mountpoint="/digital"} + (node_filesystem_size_bytes{fstype=~"ext.*|xfs",job="Sucursales",mountpoint="/digital"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs",job="Sucursales",mountpoint="/digital"})), 0.1)
+
+    - alert: FileSystem Warning
+      expr: 97 < (job:node_FileSystem_Digital:available) < 99
+      for: 2m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: Warning"
+        description: "FileSystem {{ $labels.mountpoint }} de host {{ $labels.instance }} valor actual {{ $value }}% supera el 97%."
+
+    - alert: FileSystem Critical
+      expr: (job:node_FileSystem_Digital:available) >= 99
+      for: 2m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: CRITICAL"
+        description: "FileSystem {{ $labels.mountpoint }} de host {{ $labels.instance }} valor actual {{ $value }}% supera el 99%."
+
+
+  - name: Sucursales Uso de CPU
+    rules:
+    - record: job:USO_CPU:Sucursal
+      expr: round((1 - avg(rate(node_cpu_seconds_total{job="Sucursales",mode="idle"}[5m])) by (instance)) * 100,0.1)
+
+    - alert: (Suc) Uso de CPU Warning
+      expr: 40 < (job:USO_CPU:Sucursal) < 60
+      for: 5m
+      annotations:
+        summary: "Uso de CPU: Warning"
+        description: "Uso de CPU en host {{ $labels.instance }} supera el 40%. Valor actual {{ $value }}%."
+
+    - alert: (Suc) Uso de CPU Critical
+      expr: (job:USO_CPU:Sucursal) >= 60
+      for: 5m
+      annotations:
+        summary: "Uso de CPU: Critical"
+        description: "Uso de CPU en host {{ $labels.instance }} supera el 60%. Valor actual {{ $value }}%."
+
+
+  - name: Sucursales Uso de SWAP
+    rules:
+    - record: job:Memoria_SWAP:Sucursal
+      expr: round(((node_memory_SwapTotal_bytes{job="Sucursales"} - node_memory_SwapFree_bytes{job="Sucursales"}) / (node_memory_SwapTotal_bytes{job="Sucursales"} )) * 100,0.1)
+
+    - alert: Memoria Swap Warning
+      expr: 60 < (job:Memoria_SWAP:Sucursal) < 80
+      for: 2m
+      annotations:
+        summary: "Uso de SWAP: Warning"
+        description: "Uso de Memoria SWAP en host {{ $labels.instance }} supera el 60%. Valor actual {{ $value }}%."
+
+    - alert: Memoria Swap Critical
+      expr: (job:Memoria_SWAP:Sucursal) >= 80
+      for: 2m
+      annotations:
+        summary: "Uso de SWAP: Critical"
+        description: "Uso de Memoria SWAP en host {{ $labels.instance }} supera el 80%. Valor actual {{ $value }}%."
+
+
+  - name: Sucursales Proceso Caido
+    rules:
+    - record: job:Proceso_VPR_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales",groupname="zsh"}
+
+    - alert: ProcessDownSUC
+      expr: job:Proceso_VPR_Suc:Status < 28
+      for: 2m
+      annotations:
+        summary: "Proceso Venta por Reserva Caido, Reiniciar desde el Menu."
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+    - record: job:Proceso_AgCTRLM_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales",groupname=~"p_ctmat.*|p_ctmag"}
+
+    - alert: ProcessDownSUC
+      expr: job:Proceso_AgCTRLM_Suc:Status == 0
+      for: 2m
+      annotations:
+        summary: "Proceso Agente Control-M Caido, Levantar desde el Menu."
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+    - record: job:Proceso_BaseSF_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales",groupname=~"ora_pmon_SF.*"}
+
+    - alert: ProcessDownSUC
+      expr: job:Proceso_BaseSF_Suc:Status == 0
+      for: 2m
+      annotations:
+        summary: "La Base de SF esta caida, Levantar desde el Menu."
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+    - record: job:Proceso_BaseCTM_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales",groupname=~"ora_pmon_CTM.*"}
+
+    - alert: ProcessDownSUC
+      expr: job:Proceso_BaseCTM_Suc:Status == 0
+      for: 2m
+      annotations:
+        summary: "La Base de Control-M esta caida, Levantar desde el Menu."
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+    - record: job:Proceso_Java_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales",groupname="java"}
+
+    - alert: ProcessDownSUC
+      expr: job:Proceso_Java_Suc:Status == 0
+      for: 2m
+      annotations:
+        summary: "Proceso JAVA (Demontick/Pchecker) Caido, Reiniciar desde el Menu."
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+    - record: job:Proceso_StoreFlow_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales",groupname=~"EnvioDom.*|ServerDTM.*|Servidor.*|envio.*|filtro.*|pipe.*|price.*|socket.*"}
+
+    - alert: ProcessDownSUC
+      expr: job:Proceso_StoreFlow_Suc:Status == 0 and on() 10 < hour() < 2
+      for: 2m
+      annotations:
+        summary: "Procesos STOREFLOW Caidos, Reiniciar desde el Menu."
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+    - record: job:Proceso_NRPE_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales",groupname="nrpe"}
+
+    - alert: ProcessDownSUC
+      expr: job:Proceso_NRPE_Suc:Status == 0
+      for: 2m
+      annotations:
+        summary: "Proceso NRPE (Agente Nagios) Caido, Reiniciar con el comando: sudo service nrpe restart."
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+    - record: job:Proceso_NTPD_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales",groupname="ntpd"}
+
+    - alert: ProcessDownSUC
+      expr: job:Proceso_NTPD_Suc:Status == 0 and on() 16 < hour()-3 < 17
+      for: 2m
+      annotations:
+        summary: "Proceso NTPD Caido, Verificar que este en Horario: sudo ntpdate dc12000 y luego Reiniciar con el comando: sudo service ntpd restart."
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+    - record: job:Proceso_LDAP_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales",groupname=~"ns.*"}
+
+    - alert: ProcessDownSUC
+      expr: job:Proceso_LDAP_Suc:Status == 0
+      for: 2m
+      annotations:
+        summary: "Procesos LDAP Caidos, Notificar al Sector AIX."
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+    - record: job:Proceso_SAMBA_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales",groupname="smbd"}
+
+    - alert: ProcessDownSUC
+      expr: job:Proceso_SAMBA_Suc:Status == 0
+      for: 2m
+      annotations:
+        summary: "Proceso SAMBA Caido, Notificar al Sector AIX."
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 2 min."
+

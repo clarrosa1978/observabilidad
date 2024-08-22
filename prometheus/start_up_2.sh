@@ -1,0 +1,1 @@
+docker run -d --name=prometheus3 -p 9090:9090 -v /etc/resolv.conf:/etc/resolv.conf:ro -v /docker_home/prometheus/etc/prometheus:/etc/prometheus:rw  -v /docker_home/prometheus/prometheus:/prometheus:rw -e TIMEZONE="America/Argentina/Buenos_Aires" prom/prometheus --config.file=/etc/prometheus/prometheus.yml

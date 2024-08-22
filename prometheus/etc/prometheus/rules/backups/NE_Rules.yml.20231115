@@ -1,0 +1,129 @@
+# stress tool to increase CPU usage
+# stress -c 1 -v -timeout 100s
+
+# stress-ng to increase memory usage
+# stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1
+
+# combined 
+# stress-ng -c 1 -v --vm-bytes $(awk '/MemAvailable/{printf "%d\n", $2 * 0.85;}' < /proc/meminfo)k --vm-keep -m 1 --timeout 300s
+
+# to increase disk usage space
+# fallocate -l 30G file
+
+groups:
+  - name: linux-rules
+    rules:
+
+    - alert: NodeExporterDown
+      expr: up{job="node_exporter"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        app_type: linux
+        category: server
+      annotations:
+        summary: "Node Exporter is down"
+        description: "Node Exporter is down for more than 2 minutes"
+
+    - alert: NodeCPUUsageHigh
+      expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[1m])) * 100) > 80
+      for: 2m
+      labels:
+        severity: critical
+        app_type: linux
+        category: cpu
+      annotations:
+        summary: "Node CPU usage is HIGH"
+        description: "CPU load for instance {{ $labels.instance }} has reached {{ $value }}%"
+
+    - alert: NodeCPU_0_High
+      expr: 100 - (avg by(instance, cpu) (irate(node_cpu_seconds_total{mode="idle", cpu="0"}[1m])) * 100) > 80
+      for: 2m
+      labels:
+        severity: critical
+        app_type: linux
+        category: cpu
+      annotations:
+        summary: "Node CPU_0 usage is HIGH"
+        description: "CPU_0 load for instance {{ $labels.instance }} has reached {{ $value }}%"
+
+    - alert: NodeCPU_1_High
+      expr: 100 - (avg by(instance, cpu) (irate(node_cpu_seconds_total{mode="idle", cpu="1"}[1m])) * 100) > 80
+      for: 2m
+      labels:
+        severity: critical
+        app_type: linux
+        category: cpu
+      annotations:
+        summary: "Node CPU_1 usage is HIGH"
+        description: "CPU_1 load for instance {{ $labels.instance }} has reached {{ $value }}%"
+
+    - alert: NodeFreeDiskSpaceLess30%
+      expr: (sum by (instance) (node_filesystem_free_bytes) / sum by (instance) (node_filesystem_size_bytes)) * 100 < 30
+      for: 2m
+      labels:
+        severity: warning
+        app_type: linux
+        category: disk
+      annotations:
+        summary: "Node free disk space is running out"
+        description: "Node disk is going to full (< 30% left)\n  Current free disk space is {{ $value }}"
+
+
+    - record: job:node_FileSystem_NE:available
+      expr: round((node_filesystem_size_bytes{job="node_exporter",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}-node_filesystem_free_bytes{job="node_exporter",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}) *100/(node_filesystem_avail_bytes {job="node_exporter",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}+(node_filesystem_size_bytes{job="node_exporter",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}-node_filesystem_free_bytes{job="node_exporter",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"})),0.1) 
+
+    - alert: FileSystem Warning
+      expr: 80 < (job:node_FileSystem_NE:available) < 90
+      for: 2m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: Warning"
+        description: "FileSystem {{ $labels.mountpoint }} de {{ $labels.instance }} valor actual {{ $value }} % supera el 80%."
+
+    - alert: FileSystem Critical
+      expr: (job:node_FileSystem_NE:available) >= 90
+      for: 2m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: CRITICAL"
+        description: "FileSystem {{ $labels.mountpoint }} de {{ $labels.instance }} valor actual {{ $value }} % supera el 90 %."
+
+
+    - record: job:node_memory_Mem_bytes:available
+      expr: round(100 - ((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100),0.1)
+
+    - alert: Memoria Usada Warning
+      expr: 30 < (job:node_memory_Mem_bytes:available) < 75
+      for: 2m
+      labels:
+      annotations:
+        summary: "Memoria usada es WARNING"
+        description: "Memoria de host {{ $labels.instance }} valor actual {{ $value }} % supera el 30 %."
+
+    - alert: Memorya usada supera 75%
+      expr: (job:node_memory_Mem_bytes:available) >= 75
+      for: 2m
+      labels:
+      annotations:
+        summary: "Memoria usada is CRITICAL"
+        description: "Memoria de host {{ $labels.instance }} valor actual {{ $value }} % supera el 75 %."
+
+
+    - record: job:USO_CPU_NE:available
+      expr: round((1 - avg(rate(node_cpu_seconds_total{job="node_exporter",mode="idle"}[5m])) by (instance)) * 100,0.1)
+
+    - alert: UsoCPU Warning
+      expr: 20 < (job:USO_CPU_NE:available) < 50
+      for: 2m
+      annotations:
+        summary: "Uso de CPU: Warning"
+        description: "Uso de CPU en host {{ $labels.instance }} valor actual {{ $value }} % supera el 20 %."
+
+    - alert: UsoCPU Critical
+      expr: (job:USO_CPU_NE:available) >= 50
+      for: 2m
+      annotations:
+        summary: "Uso de CPU: Critical"
+        description: "Uso de CPU en host {{ $labels.instance }} valor actual {{ $value }} % supera el 50 %."
+

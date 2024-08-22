@@ -1,0 +1,98 @@
+groups:
+
+  - name: disk_alerts
+    rules:
+      - alert: HighDiskIOTimeCritical
+        expr: rate(node_disk_io_time_weighted_seconds_total{job=~'Hosts', device!~'^(md\\d+$|dm-)'}[5m]) > 1500
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical: High disk I/O time detected"
+          description: "Disk I/O time is above 0.5 seconds per second for the last 5 minutes."
+
+      - alert: HighDiskIOTimeWarning
+        expr: rate(node_disk_io_time_weighted_seconds_total{job=~'Hosts', device!~'^(md\\d+$|dm-)'}[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Warning: High disk I/O time detected"
+          description: "Disk I/O time is above 0.2 seconds per second for the last 5 minutes."
+
+          
+  - name: Hosts Uso de FileSystem
+    rules:    
+    - record: job:node_FileSystem_bytes:available
+      expr: round((node_filesystem_size_bytes{fstype=~"ext.*|xfs",job="Hosts",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs",job="Hosts",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"}) * 100 / (node_filesystem_avail_bytes{fstype=~"ext.*|xfs",job="Hosts",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"} + (node_filesystem_size_bytes{fstype=~"ext.*|xfs",job="Hosts",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs",job="Hosts",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"})), 0.1) 
+
+    - alert: FileSystem Warning
+      expr: 80 < (job:node_FileSystem_bytes:available) < 90
+      for: 10m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: Warning"
+        description: "FileSystem {{ $labels.mountpoint }} de host {{ $labels.instance }} valor actual {{ $value }}% supera el 80%."
+
+    - alert: FileSystem Critical
+      expr: (job:node_FileSystem_bytes:available) >= 90
+      for: 10m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: CRITICAL"
+        description: "FileSystem {{ $labels.mountpoint }} de host {{ $labels.instance }} valor actual {{ $value }}% supera el 90%."
+
+
+  - name: Hosts Uso de CPU
+    rules:
+    - record: job:USO_CPU:Hosts
+      expr: round((1 - avg(rate(node_cpu_seconds_total{job="Hosts",mode="idle"}[5m])) by (instance)) * 100,0.1)
+
+    - alert: (Suc) Uso de CPU Critical
+      expr: (job:USO_CPU:Hosts) >= 90
+      for: 10m
+      annotations:
+        summary: "Uso de CPU: Critical"
+        description: "Uso de CPU en host {{ $labels.instance }} supera el 60%. Valor actual {{ $value }}%."
+
+  - name: Hosts uso de ram
+    rules:
+    - record: job:node_memory_mem_bytes_suc:available
+      expr: round(100 - ((node_memory_MemavAilable_bytes{job="Hosts"} / node_memory_MemTotal_bytes{job="Hosts"}) * 100),0.1)
+
+    - alert: (suc) memoria usada warning
+      expr: 70 < (job:node_memory_mem_bytes_suc:available) < 85
+      for: 10m
+      annotations:
+        summary: "memoria usada es warning"
+        description: "memoria de host {{ $labels.instance }} valor actual {{ $value }}% supera el 70%."
+
+    - alert: (suc) memoria usada critical
+      expr: (job:node_memory_mem_bytes_suc:available) >= 85
+      for: 10m
+      annotations:
+        summary: "memoria usada is critical"
+        description: "memoria de host {{ $labels.instance }} valor actual {{ $value }}% supera el 85%."
+
+
+  - name: Hosts Uso de SWAP
+    rules:
+    - record: job:Memoria_SWAP:Hosts
+      expr: round(((node_memory_SwapTotal_bytes{job="Hosts"} - node_memory_SwapFree_bytes{job="Hosts"}) / (node_memory_SwapTotal_bytes{job="Hosts"} )) * 100,0.1)
+
+    - alert: Memoria Swap Warning
+      expr: 70 < (job:Memoria_SWAP:Hosts) < 80
+      for: 10m
+      annotations:
+        summary: "Uso de SWAP: Warning"
+        description: "Uso de Memoria SWAP en host {{ $labels.instance }} supera el 60%. Valor actual {{ $value }}%."
+
+    - alert: Memoria Swap Critical
+      expr: (job:Memoria_SWAP:Hosts) >= 80
+      for: 10m
+      annotations:
+        summary: "Uso de SWAP: Critical"
+        description: "Uso de Memoria SWAP en host {{ $labels.instance }} supera el 80%. Valor actual {{ $value }}%."
+
+
+

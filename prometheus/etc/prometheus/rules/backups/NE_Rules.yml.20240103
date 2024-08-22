@@ -1,0 +1,98 @@
+# stress tool to increase CPU usage
+# stress -c 1 -v -timeout 100s
+
+# stress-ng to increase memory usage
+# stress-ng --vm-bytes $(awk '/MemFree/{printf "%d\n", $2 * 0.9;}' < /proc/meminfo)k --vm-keep -m 1
+
+# combined 
+# stress-ng -c 1 -v --vm-bytes $(awk '/MemAvailable/{printf "%d\n", $2 * 0.85;}' < /proc/meminfo)k --vm-keep -m 1 --timeout 300s
+
+# to increase disk usage space
+# fallocate -l 30G file
+
+groups:
+  - name: Exporter Equipo DOWN
+    rules:
+    - record: job:Node_Exporter_NE:Status
+      expr: up{job="NodeExporter"}
+
+    - alert: NodeExporterDownNE
+      expr: job:Node_Exporter_NE:Status == 0
+      for: 2m
+      annotations:
+        summary: "Node Exporter is DOWN"
+        description: "Node Exporter del {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+  - name: Exporter Espacio Libre 
+    rules:
+    - record: job:FreeDiskSpace_NE:Status
+      expr: round((sum by (instance,job) (node_filesystem_free_bytes{job="NodeExporter"}) / sum by (instance,job) (node_filesystem_size_bytes{job="NodeExporter"})) * 100,0.1) 
+
+    - alert: (NE) Free Disk Space Warning
+      expr: job:FreeDiskSpace_NE:Status < 30
+      for: 2m
+      annotations:
+        summary: "El Espacio libre en disco es Warning"
+        description: "El disco se está llenando (quedan < 30%). El espacio libre actual del disco es {{ $value }}"
+
+
+  - name: Exporter Uso de FileSystem
+    rules:
+    - record: job:node_FileSystem_NE:available
+      expr: round((node_filesystem_size_bytes{job="NodeExporter",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}-node_filesystem_free_bytes{job="NodeExporter",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}) *100/(node_filesystem_avail_bytes {job="NodeExporter",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}+(node_filesystem_size_bytes{job="NodeExporter",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"}-node_filesystem_free_bytes{job="NodeExporter",fstype=~"ext.*|xfs",mountpoint !~".*pod.*"})),0.1) 
+
+    - alert: (NE) FileSystem Warning
+      expr: 80 < (job:node_FileSystem_NE:available) < 90
+      for: 2m
+      annotations:
+        summary: "Uso de FileSystem: Warning"
+        description: "FileSystem {{ $labels.mountpoint }} de {{ $labels.instance }} valor actual {{ $value }}% supera el 80%."
+
+    - alert: (NE) FileSystem Critical
+      expr: (job:node_FileSystem_NE:available) >= 90
+      for: 2m
+      annotations:
+        summary: "Uso de FileSystem: CRITICAL"
+        description: "FileSystem {{ $labels.mountpoint }} de {{ $labels.instance }} valor actual {{ $value }}% supera el 90%."
+
+
+  - name: Exporter Uso de RAM
+    rules:
+    - record: job:node_memory_Mem_bytes:available
+      expr: round(100 - ((node_memory_MemAvailable_bytes{job="NodeExporter"} / node_memory_MemTotal_bytes{job="NodeExporter"}) * 100),0.1) 
+
+    - alert: (NE) Memoria Usada Warning
+      expr: 70 < (job:node_memory_Mem_bytes:available) < 85
+      for: 2m
+      annotations:
+        summary: "Memoria usada es WARNING"
+        description: "Memoria de host {{ $labels.instance }} valor actual {{ $value }}% supera el 70%."
+
+    - alert: (NE) Memoria usada Critical
+      expr: (job:node_memory_Mem_bytes:available) >= 85
+      for: 2m
+      annotations:
+        summary: "Memoria usada is CRITICAL"
+        description: "Memoria de host {{ $labels.instance }} valor actual {{ $value }}% supera el 85%."
+
+
+  - name: Exporter Uso de CPU
+    rules:
+    - record: job:USO_CPU_NE:available
+      expr: round((1 - avg(rate(node_cpu_seconds_total{job="NodeExporter",mode="idle"}[5m])) by (instance,job)) * 100,0.1)
+
+    - alert: (NE) Uso de CPU Warning
+      expr: 30 < (job:USO_CPU_NE:available) < 50
+      for: 2m
+      annotations:
+        summary: "Uso de CPU: Warning"
+        description: "Uso de CPU en host {{ $labels.instance }} valor actual {{ $value }}% supera el 30%."
+
+    - alert: (NE) Uso de CPU Critical
+      expr: (job:USO_CPU_NE:available) >= 50
+      for: 2m
+      annotations:
+        summary: "Uso de CPU: Critical"
+        description: "Uso de CPU en host {{ $labels.instance }} valor actual {{ $value }}% supera el 50%."
+

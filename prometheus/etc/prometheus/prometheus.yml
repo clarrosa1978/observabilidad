@@ -1,0 +1,392 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # Evalua las reglas cada 15 segundos.
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: 'Prometheus-Monitor'
+
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - 172.16.8.64:9093
+
+# Cargue las reglas una vez y evaluelas periodicamente de acuerdo con 'evaluation_interval'.
+rule_files:
+  - "rules/NE_Rules.yml"
+  - "rules/SucRules.yml"
+  - "rules/Digital_Rules.yml"
+  - "rules/MODORules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 15s
+
+    static_configs:
+      - targets: ['172.16.8.64:9090']
+
+  - job_name: 'MODO'
+    static_configs:
+      - targets: ['sfc001:9100']
+      - targets: ['sfc001:9256']
+
+  - job_name: 'WebServers'
+    static_configs:
+      - targets: ['ohsclus01:9117']
+      - targets: ['ohsclus02:9117']
+      - targets: ['ohsclus03:9117']
+      - targets: ['ohsclus04:9117']
+      - targets: ['ohsclus05:9117']
+      - targets: ['ohsclus01:9100']
+      - targets: ['ohsclus02:9100']
+      - targets: ['ohsclus03:9100']
+      - targets: ['ohsclus04:9100']
+      - targets: ['ohsclus05:9100']
+
+  - job_name: 'DNS'
+    static_configs:
+      - targets: ['172.16.8.59:9119']
+      - targets: ['172.16.8.60:9119']
+
+  - job_name: 'NodeExporter'
+    static_configs:
+      - targets: ['slnxgrafana01:9100']
+      - targets: ['128.2.111.212:9100']
+      - targets: ['slnxtest01:9100']
+
+  - job_name: 'Sucursales'
+    static_configs:
+      - targets: ['suc02:9100']
+      - targets: ['suc02:9256']
+      - targets: ['suc06:9100']
+      - targets: ['suc06:9256']
+      - targets: ['suc07:9100']
+      - targets: ['suc07:9256']
+      - targets: ['suc18:9100']
+      - targets: ['suc19:9100']
+      - targets: ['suc20:9100']
+      - targets: ['suc22:9100']
+      - targets: ['suc24:9100']
+      - targets: ['suc25:9100']
+      - targets: ['suc26:9100']
+      - targets: ['suc35:9100']
+      - targets: ['suc37:9100']
+      - targets: ['suc38:9100']
+      - targets: ['suc39:9100']
+      - targets: ['suc40:9100']
+      - targets: ['suc41:9100']
+      - targets: ['suc42:9100']
+      - targets: ['suc43:9100']
+      - targets: ['suc44:9100']
+      - targets: ['suc45:9100']
+      - targets: ['suc46:9100']
+      - targets: ['suc47:9100']
+      - targets: ['suc48:9100']
+      - targets: ['suc49:9100']
+      - targets: ['suc51:9100']
+      - targets: ['suc52:9100']
+      - targets: ['suc53:9100']
+      - targets: ['suc55:9100']
+      - targets: ['suc56:9100']
+      - targets: ['suc57:9100']
+      - targets: ['suc58:9100']
+      - targets: ['suc59:9100']
+      - targets: ['suc60:9100']
+      - targets: ['suc61:9100']
+      - targets: ['suc63:9100']
+      - targets: ['suc64:9100']
+      - targets: ['suc65:9100']
+      - targets: ['suc66:9100']
+      - targets: ['suc67:9100']
+      - targets: ['suc68:9100']
+      - targets: ['suc69:9100']
+      - targets: ['suc70:9100']
+      - targets: ['suc71:9100']
+      - targets: ['suc74:9100']
+      - targets: ['suc75:9100']
+      - targets: ['suc78:9100']
+      - targets: ['suc80:9100']
+      - targets: ['suc82:9100']
+      - targets: ['suc83:9100']
+      - targets: ['suc84:9100']
+      - targets: ['suc85:9100']
+      - targets: ['suc88:9100']
+      - targets: ['suc90:9100']
+      - targets: ['suc91:9100']
+      - targets: ['suc92:9100']
+      - targets: ['suc94:9100']
+      - targets: ['suc95:9100']
+      - targets: ['suc96:9100']
+      - targets: ['suc97:9100']
+      - targets: ['suc99:9100']
+      - targets: ['suc101:9100']
+      - targets: ['suc103:9100']
+      - targets: ['suc104:9100']
+      - targets: ['suc105:9100']
+      - targets: ['suc107:9100']
+      - targets: ['suc108:9100']
+      - targets: ['suc109:9100']
+      - targets: ['suc110:9100']
+      - targets: ['suc111:9100']
+      - targets: ['suc116:9100']
+      - targets: ['suc117:9100']
+      - targets: ['suc118:9100']
+      - targets: ['suc121:9100']
+      - targets: ['suc123:9100']
+      - targets: ['suc124:9100']
+      - targets: ['suc125:9100']
+      - targets: ['suc129:9100']
+      - targets: ['suc130:9100']
+      - targets: ['suc131:9100']
+      - targets: ['suc136:9100']
+      - targets: ['suc149:9100']
+      - targets: ['suc151:9100']
+      - targets: ['suc153:9100']
+      - targets: ['suc154:9100']
+      - targets: ['suc155:9100']
+      - targets: ['suc158:9100']
+      - targets: ['suc159:9100']
+      - targets: ['suc160:9100']
+      - targets: ['suc162:9100']
+      - targets: ['suc163:9100']
+      - targets: ['suc164:9100']
+      - targets: ['suc165:9100']
+      - targets: ['suc167:9100']
+      - targets: ['suc168:9100']
+      - targets: ['suc170:9100']
+      - targets: ['suc171:9100']
+      - targets: ['suc174:9100']
+      - targets: ['suc175:9100']
+      - targets: ['suc176:9100']
+      - targets: ['suc178:9100']
+      - targets: ['suc179:9100']
+      - targets: ['suc180:9100']
+      - targets: ['suc181:9100']
+      - targets: ['suc182:9100']
+      - targets: ['suc183:9100']
+      - targets: ['suc184:9100']
+      - targets: ['suc185:9100']
+      - targets: ['suc186:9100']
+      - targets: ['suc188:9100']
+      - targets: ['suc189:9100']
+      - targets: ['suc192:9100']
+      - targets: ['suc197:9100']
+      - targets: ['suc199:9100']
+      - targets: ['suc203:9100']
+      - targets: ['suc204:9100']
+      - targets: ['suc208:9100']
+      - targets: ['suc209:9100']
+      - targets: ['suc215:9100']
+      - targets: ['suc219:9100']
+      - targets: ['suc220:9100']
+      - targets: ['suc235:9100']
+
+
+  - job_name: 'Hosts'
+    static_configs:
+      - targets: ['host038:9100']
+      - targets: ['host041:9100']
+      - targets: ['host042:9100']
+      - targets: ['host043:9100']
+      - targets: ['host044:9100']
+      - targets: ['host045:9100']
+      - targets: ['host046:9100']
+      - targets: ['host047:9100']
+      - targets: ['host048:9100']
+      - targets: ['host049:9100']
+      - targets: ['host051:9100']
+      - targets: ['host053:9100']
+      - targets: ['host055:9100']
+      - targets: ['host056:9100']
+      - targets: ['host057:9100']
+      - targets: ['host058:9100']
+      - targets: ['host059:9100']
+      - targets: ['host060:9100']
+      - targets: ['host061:9100']
+      - targets: ['host063:9100']
+      - targets: ['host064:9100']
+      - targets: ['host065:9100']
+      - targets: ['host066:9100']
+      - targets: ['host067:9100']
+      - targets: ['host068:9100']
+      - targets: ['host069:9100']
+      - targets: ['host070:9100']
+      - targets: ['host074:9100']
+      - targets: ['host075:9100']
+      - targets: ['host078:9100']
+      - targets: ['host080:9100']
+      - targets: ['host082:9100']
+      - targets: ['host083:9100']
+      - targets: ['host084:9100']
+      - targets: ['host085:9100']
+      - targets: ['host090:9100']
+      - targets: ['host091:9100']
+      - targets: ['host092:9100']
+      - targets: ['host094:9100']
+      - targets: ['host099:9100']
+      - targets: ['host101:9100']
+      - targets: ['host103:9100']
+      - targets: ['host104:9100']
+      - targets: ['host105:9100']
+      - targets: ['host107:9100']
+      - targets: ['host108:9100']
+      - targets: ['host109:9100']
+      - targets: ['host110:9100']
+      - targets: ['host111:9100']
+      - targets: ['host117:9100']
+      - targets: ['host118:9100']
+      - targets: ['host123:9100']
+      - targets: ['host124:9100']
+      - targets: ['host129:9100']
+      - targets: ['host130:9100']
+      - targets: ['host131:9100']
+      - targets: ['host136:9100']
+      - targets: ['host151:9100']
+      - targets: ['host153:9100']
+      - targets: ['host154:9100']
+      - targets: ['host158:9100']
+      - targets: ['host159:9100']
+      - targets: ['host160:9100']
+      - targets: ['host165:9100']
+      - targets: ['host167:9100']
+      - targets: ['host171:9100']
+      - targets: ['host176:9100']
+      - targets: ['host178:9100']
+      - targets: ['host180:9100']
+      - targets: ['host184:9100']
+      - targets: ['host185:9100']
+      - targets: ['host188:9100']
+      - targets: ['host189:9100']
+      - targets: ['host197:9100']
+      - targets: ['host199:9100']
+      - targets: ['host203:9100']
+      - targets: ['host204:9100']
+      - targets: ['host209:9100']
+      - targets: ['host215:9100']
+      - targets: ['host219:9100']
+      - targets: ['host220:9100']
+      - targets: ['host229:9100']
+      - targets: ['host044c:9100']
+      - targets: ['host046c:9100']
+      - targets: ['host051c:9100']
+      - targets: ['host056c:9100']
+      - targets: ['host060c:9100']
+      - targets: ['host061c:9100']
+      - targets: ['host063c:9100']
+      - targets: ['host064c:9100']
+      - targets: ['host065c:9100']
+      - targets: ['host067c:9100']
+      - targets: ['host069c:9100']
+      - targets: ['host075c:9100']
+      - targets: ['host078c:9100']
+      - targets: ['host082c:9100']
+      - targets: ['host083c:9100']
+      - targets: ['host085c:9100']
+      - targets: ['host090c:9100']
+      - targets: ['host091c:9100']
+      - targets: ['host092c:9100']
+      - targets: ['host099c:9100']
+      - targets: ['host103c:9100']
+      - targets: ['host107c:9100']
+      - targets: ['host109c:9100']
+      - targets: ['host118c:9100']
+      - targets: ['host129c:9100']
+      - targets: ['host131c:9100']
+      - targets: ['host136c:9100']
+      - targets: ['host158c:9100']
+      - targets: ['host160c:9100']
+      - targets: ['host165c:9100']
+      - targets: ['host167c:9100']
+      - targets: ['host178c:9100']
+      - targets: ['host184c:9100']
+      - targets: ['host185c:9100']
+      - targets: ['host188c:9100']
+      - targets: ['host189c:9100']
+      - targets: ['host197c:9100']
+      - targets: ['host203c:9100']
+      - targets: ['host204c:9100']
+      - targets: ['host209c:9100']
+      - targets: ['host215c:9100']
+      - targets: ['host219c:9100']
+      - targets: ['host220c:9100']
+
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['slnxgrafana01:9101']
+      - targets: ['slnxtest01:9101']
+      - targets: ['slnxdock03:9101']
+
+  - job_name: "docker-stats"
+    honor_labels: true
+    static_configs:
+    - targets:
+        - localhost:9323
+
+  - job_name: 'DockerDigital'
+    static_configs:
+      - targets: ['host056b:9101']
+      - targets: ['host060b:9101']
+      - targets: ['host090b:9101']
+      - targets: ['host181b:9101']
+      - targets: ['host182b:9101']
+      - targets: ['host220b:9101']
+
+  - job_name: 'CotoDigital'
+    static_configs:
+      - targets: ['host056b:9100']
+      - targets: ['host060b:9100']
+      - targets: ['host090b:9100']
+      - targets: ['host091d:9100']
+      - targets: ['host092b:9100']
+      - targets: ['host131b:9100']
+      - targets: ['host181b:9100']
+      - targets: ['host182b:9100']
+      - targets: ['host220b:9100']
+
+  - job_name: 'CotoDigitalSuc'
+    static_configs:
+     - targets: ['suc056db:9100']
+     - targets: ['suc060db:9100']
+     - targets: ['suc090db:9100']
+     - targets: ['suc091db:9100']
+     - targets: ['suc129db:9100']
+     - targets: ['suc181db:9100']
+     - targets: ['suc182db:9100']
+     - targets: ['suc220db:9100']
+     - targets: ['suc056dbc:9100']
+     - targets: ['suc060dbc:9100']
+     - targets: ['suc090dbc:9100']
+     - targets: ['suc091dbc:9100']
+     - targets: ['suc129dbc:9100']
+     - targets: ['suc220dbc:9100']
+     - targets: ['suc092db:9100']
+     - targets: ['suc131db:9100']
+     - targets: ['suc181db:9100']
+
+
+
+
+  - job_name: 'process_exporter'
+    static_configs:
+      - targets: ['128.2.111.212:9256']
+
+  - job_name: 'OracleDB'
+    static_configs:
+      - targets: ['suc02:9161']
+      - targets: ['lnxdigidb:9161']
+      - targets: ['lnxdigidb2:9161']
+
+  - job_name: 'Nginx'
+    static_configs:
+      - targets: ['sdmz02:9100']
+      - targets: ['sdmz02:9113']

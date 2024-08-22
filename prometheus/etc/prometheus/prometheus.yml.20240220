@@ -1,0 +1,88 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # Evalua las reglas cada 15 segundos.
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: 'Prometheus-Monitor'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - 172.16.8.64:9093
+
+# Cargue las reglas una vez y evaluelas periodicamente de acuerdo con 'evaluation_interval'.
+rule_files:
+  - "rules/NE_Rules.yml"
+  - "rules/SucRules.yml"
+  - "rules/Digital_Rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: ['172.16.8.64:9090']
+
+  - job_name: 'NodeExporter'
+    static_configs:
+      - targets: ['slnxgrafana01:9100']
+      - targets: ['128.2.111.212:9100']
+      - targets: ['slnxtest01:9100']
+
+  - job_name: 'Sucursales'
+    static_configs:
+      - targets: ['suc02:9100']
+      - targets: ['suc02:9256']
+      - targets: ['suc06:9100']
+      - targets: ['suc06:9256']
+      - targets: ['suc07:9100']
+      - targets: ['suc07:9256']
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['slnxgrafana01:9101']
+      - targets: ['slnxtest01:9101']
+
+  - job_name: 'DockerDigital'
+    static_configs:
+      - targets: ['host056b:9101']
+      - targets: ['host060b:9101']
+      - targets: ['host090b:9101']
+      - targets: ['host181b:9101']
+      - targets: ['host182b:9101']
+      - targets: ['host220b:9101']
+
+  - job_name: 'CotoDigital'
+    static_configs:
+      - targets: ['host056b:9100']
+      - targets: ['host060b:9100']
+      - targets: ['host090b:9100']
+      - targets: ['host181b:9100']
+      - targets: ['host182b:9100']
+      - targets: ['host220b:9100']
+
+  - job_name: 'process_exporter'
+    static_configs:
+      - targets: ['128.2.111.212:9256']
+
+  - job_name: 'PushGateway'
+    static_configs:
+      - targets: ['128.2.111.212:9091']
+
+  - job_name: 'OracleDB'
+    static_configs:
+      - targets: ['suc02:9161']
+
+  - job_name: 'Nginx'
+    static_configs:
+      - targets: ['sdmz02:9100']
+      - targets: ['sdmz02:9113']

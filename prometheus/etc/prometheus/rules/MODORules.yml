@@ -1,0 +1,97 @@
+groups:
+  - name:  Proceso Caido
+    rules:
+    - record: job:Proceso_TRXqr_MODO:Status
+      expr: namedprocess_namegroup_num_procs{job="MODO",groupname="TRXqr"}
+
+    - alert: ProcessDownMODO_TRXqr
+      expr: (job:Proceso_TRXqr_MODO:Status == 0) 
+      for: 1s
+      annotations:
+        summary: "Proceso MODO Caido, reiniciar servicio"
+        description: "Ingresar al servidor sfc001 y desde el menú reiniciar los servicios MODO."
+
+    - record: job:Proceso_TOUqr:Status
+      expr: namedprocess_namegroup_num_procs{job="MODO",groupname="TOUqr"}
+
+    - alert: ProcessDownMODO_TOUqr
+      expr: (job:Proceso_TOUqr:Status == 0) 
+      for: 1s
+      annotations:
+        summary: "Proceso MODO Caido, reiniciar servicio"
+        description: "Ingresar al servidor sfc001 y desde el menú reiniciar los servicios MODO."
+
+    - record: job:Proceso_ISOqr_MODO:Status
+      expr: namedprocess_namegroup_num_procs{job="MODO",groupname="ISOqr"}
+
+    - alert: ProcessDownMODO_ISOqr
+      expr: (job:Proceso_ISOqr_MODO:Status == 0)
+      for: 1s
+      annotations:
+        summary: "Proceso MODO Caido, reiniciar servicio"
+        description: "Ingresar al servidor sfc001 y desde el menú reiniciar los servicios MODO."
+
+    - record: job:Proceso_TCPqr_MODO:Status
+      expr: namedprocess_namegroup_num_procs{job="MODO",groupname="TCPqr"}
+
+    - alert: ProcessDownMODO_TCPqr
+      expr: (job:Proceso_TCPqr_MODO:Status == 0) 
+      for: 1s
+      annotations:
+        summary: "Proceso MODO Caido, reiniciar servicio"
+        description: "Ingresar al servidor sfc001 y desde el menú reiniciar los servicios MODO."
+
+        #  - name: FileMonitoringMODO
+        #    rules:
+        #      - alert: FileModifiedRecentlyZero
+        #        expr: (sum(file_modified_recently) != 4)  
+        #        for: 5m
+        #        annotations:
+        #          summary: "Archivos MODO sin modificacion reciente, por favor reiniciar servicio."
+        #          description: "Ingresar al servidor sfc001 y desde el menú reiniciar los servicios MODO."
+
+  - name: FileMonitoringMODO [ISOqr]
+    rules:
+      - alert: FileModifiedRecentlyZero [isoqr]
+        expr: (file_modified_recently{file=~"/sfvcc12/log/isoqr.*.log", instance="sfc001:9100", job="MODO"} == 0)
+        for: 5m
+        annotations:
+          summary: "Archivos ISOqr sin modificacion reciente, por favor reiniciar servicio."
+          description: "Ingresar al servidor sfc001 y desde el menú reiniciar los servicios MODO, de persistir comunicarse con la guardia de multistore"
+
+  - name: FileMonitoringMODO [PNGqr]
+    rules:
+      - alert: FileModifiedRecentlyZero [pngqr]
+        expr: (file_modified_recently{file=~"/sfvcc12/log/pngqr.*.log", instance="sfc001:9100", job="MODO"} == 0)
+        for: 5m
+        annotations:
+          summary: "Archivos PNGqr sin modificacion reciente, por favor reiniciar servicio."
+          description: "Ingresar al servidor sfc001 y desde el menú reiniciar los servicios MODO, de persistir comunicarse con la guardia de multistore"
+
+  - name: FileMonitoringMODO [TCPqr]
+    rules:
+      - alert: FileModifiedRecentlyZero [tcpqr]
+        expr: (file_modified_recently{file=~"/sfvcc12/log/tcpqr.*.log", instance="sfc001:9100", job="MODO"} == 0)
+        for: 5m
+        annotations:
+          summary: "Archivos TCPqr sin modificacion reciente, por favor reiniciar servicio."
+          description: "Ingresar al servidor sfc001 y desde el menú reiniciar los servicios MODO, de persistir comunicarse con la guardia de multistore"
+
+  - name: FileMonitoringMODO [TOUqr]
+    rules:
+      - alert: FileModifiedRecentlyZero [touqr]
+        expr: (file_modified_recently{file=~"/sfvcc12/log/touqr.*.log", instance="sfc001:9100", job="MODO"} == 0)
+        for: 5m
+        annotations:
+          summary: "Archivos TOUqr sin modificacion reciente, por favor reiniciar servicio."
+          description: "Ingresar al servidor sfc001 y desde el menú reiniciar los servicios MODO, de persistir comunicarse con la guardia de multistore"
+
+  - name: FileMonitoringMODO [TRXqr]
+    rules:
+      - alert: FileModifiedRecentlyZero [trxqr]
+        expr: (file_modified_recently{file=~"/sfvcc12/log/trxqr.*.log", instance="sfc001:9100", job="MODO"} == 0)
+        for: 5m
+        annotations:
+          summary: "Archivos TRXqr sin modificacion reciente, por favor reiniciar servicio."
+          description: "Ingresar al servidor sfc001 y desde el menú reiniciar los servicios MODO, de persistir comunicarse con la guardia de multistore"
+ 

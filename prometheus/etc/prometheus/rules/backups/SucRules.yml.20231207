@@ -1,0 +1,110 @@
+groups:
+  - name: Sucursales Equipo DOWN
+    rules:
+    - record: job:Node_Exporter_Suc:Status
+      expr: up{job="Sucursales"}
+
+    - alert: NodeExporterDownSUC
+      expr: job:Node_Exporter_Suc:Status == 0
+      for: 2m
+      annotations:
+        summary: "Node Exporter is DOWN"
+        description: "Node Exporter del {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+  - name: Sucursales Proceso Caido
+    rules:
+    - record: job:Process_Exporter_Suc:Status
+      expr: namedprocess_namegroup_num_procs{job="Sucursales"}
+
+    - alert: ProcessDownSUC
+      expr: job:Process_Exporter_Suc:Status == 0
+      for: 2m
+      annotations:
+        summary: "Proceso Caido"
+        description: "El Proceso {{ $labels.groupname }} del {{ $labels.instance }} esta caido por mas de 2 min."
+
+
+  - name: Sucursales Uso de FileSystem
+    rules:    
+    - record: job:node_FileSystem_bytes:available
+      expr: round((node_filesystem_size_bytes{fstype=~"ext.*|xfs",job="Sucursales",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs",job="Sucursales",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"}) * 100 / (node_filesystem_avail_bytes{fstype=~"ext.*|xfs",job="Sucursales",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"} + (node_filesystem_size_bytes{fstype=~"ext.*|xfs",job="Sucursales",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs",job="Sucursales",device!~"/dev/mapper/rootvg-lvdigital",device!~"/dev/mapper/rootvg-storeflow"})), 0.1) 
+
+    - alert: FileSystem Warning
+      expr: 80 < (job:node_FileSystem_bytes:available) < 90
+      for: 2m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: Warning"
+        description: "FileSystem {{ $labels.mountpoint }} de host {{ $labels.instance }} valor actual {{ $value }}% supera el 80%."
+
+    - alert: FileSystem Critical
+      expr: (job:node_FileSystem_bytes:available) >= 90
+      for: 2m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: CRITICAL"
+        description: "FileSystem {{ $labels.mountpoint }} de host {{ $labels.instance }} valor actual {{ $value }}% supera el 90%."
+
+
+#  - name: Sucursales Uso de FileSystem
+#    rules:
+    - record: job:node_FileSystem_Digital:available
+      expr: round((node_filesystem_size_bytes{fstype=~"ext.*|xfs",job="Sucursales",mountpoint="/digital"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs",job="Sucursales",mountpoint="/digital"}) * 100 / (node_filesystem_avail_bytes{fstype=~"ext.*|xfs",job="Sucursales",mountpoint="/digital"} + (node_filesystem_size_bytes{fstype=~"ext.*|xfs",job="Sucursales",mountpoint="/digital"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs",job="Sucursales",mountpoint="/digital"})), 0.1)
+
+    - alert: FileSystem Warning
+      expr: 97 < (job:node_FileSystem_Digital:available) < 99
+      for: 2m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: Warning"
+        description: "FileSystem {{ $labels.mountpoint }} de host {{ $labels.instance }} valor actual {{ $value }}% supera el 97%."
+
+    - alert: FileSystem Critical
+      expr: (job:node_FileSystem_Digital:available) >= 99
+      for: 2m
+      labels:
+      annotations:
+        summary: "Uso de FileSystem: CRITICAL"
+        description: "FileSystem {{ $labels.mountpoint }} de host {{ $labels.instance }} valor actual {{ $value }}% supera el 99%."
+
+
+  - name: Sucursales Uso de CPU
+    rules:
+    - record: job:USO_CPU:Sucursal
+      expr: round((1 - avg(rate(node_cpu_seconds_total{job="Sucursales",mode="idle"}[5m])) by (instance)) * 100,0.1)
+
+    - alert: UsoCPU Warning
+      expr: 20 < (job:USO_CPU:Sucursal) < 50
+      for: 2m
+      annotations:
+        summary: "Uso de CPU: Warning"
+        description: "Uso de CPU en host {{ $labels.instance }} valor actual {{ $value }}% supera el 20%."
+
+    - alert: UsoCPU Critical
+      expr: (job:USO_CPU:Sucursal) >= 50
+      for: 2m
+      annotations:
+        summary: "Uso de CPU: Critical"
+        description: "Uso de CPU en host {{ $labels.instance }} valor actual {{ $value }}% supera el 50%."
+
+
+  - name: Sucursales Uso de SWAP
+    rules:
+    - record: job:Memoria_SWAP:Sucursal
+      expr: round(((node_memory_SwapTotal_bytes{job="Sucursales"} - node_memory_SwapFree_bytes{job="Sucursales"}) / (node_memory_SwapTotal_bytes{job="Sucursales"} )) * 100,0.1)
+
+    - alert: Memoria Swap Warning
+      expr: 25 < (job:Memoria_SWAP:Sucursal) < 50
+      for: 2m
+      annotations:
+        summary: "Uso de SWAP: Warning"
+        description: "Uso de Memoria SWAP en host {{ $labels.instance }} valor actual {{ $value }}% supera el 25%."
+
+    - alert: Memoria Swap Critical
+      expr: (job:Memoria_SWAP:Sucursal) >= 50
+      for: 2m
+      annotations:
+        summary: "Uso de SWAP: Critical"
+        description: "Uso de Memoria SWAP en host {{ $labels.instance }} valor actual {{ $value }}% supera el 50%."
+

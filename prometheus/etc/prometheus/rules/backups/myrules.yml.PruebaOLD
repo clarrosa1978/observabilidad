@@ -1,0 +1,37 @@
+groups:
+  - name: cpu-node
+    rules:
+    - record: job:node_cpu_seconds:avg_idle
+      expr: avg without(cpu) (rate(node_cpu_seconds_total{mode="idle"}[5m]))
+
+  - name: ram-usada
+    rules:
+    - record: job:node_MemAvailable:Used_RAM
+      expr: 100 - ((node_memory_MemAvailable_bytes * 100) / node_memory_MemTotal_bytes)
+
+    - alert: Memoria-Ram-Warning 
+      expr: job:node_MemAvailable:Used_RAM >= 50
+      for: 2m
+      labels:
+        severity: warning
+
+    - alert: Memoria-Ram-Critical
+      expr: job:node_MemAvailable:Used_RAM >= 80
+      for: 2m
+      labels:
+        severity: critical
+
+
+  - name: Node-Exporter-Status
+    rules:
+    - record: job:Node_Exporter_Suc:Status_Node
+      expr: up{job="Sucursales"}
+
+    - alert: NodeExporterDown
+      expr: up{job="Sucursales"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Node Exporter is Down"
+    

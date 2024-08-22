@@ -1,0 +1,51 @@
+groups:
+  - name:  Proceso Caido
+    rules:
+    - record: job:Proceso_TRXqr_MODO:Status
+      expr: namedprocess_namegroup_num_procs{job="MODO",groupname="TRXqr"}
+
+    - alert: ProcessDownMODO
+      expr: job:Proceso_TRXqr_MODO:Status == 0
+      for: 1s
+      annotations:
+        summary: "Proceso MODO Caido, reiniciar servicio"
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 1 seg."
+
+    - record: job:Proceso_TOUqr:Status
+      expr: namedprocess_namegroup_num_procs{job="MODO",groupname="TOUqr"}
+
+    - alert: ProcessDownMODO
+      expr: job:Proceso_TOUqr:Status == 0
+      for: 1s
+      annotations:
+        summary: "Proceso MODO Caido, reiniciar servicio"
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 1 seg."
+
+    - record: job:Proceso_ISOqr_MODO:Status
+      expr: namedprocess_namegroup_num_procs{job="MODO",groupname="ISOqr"}
+
+    - alert: ProcessDownMODO
+      expr: job:Proceso_ISOqr_MODO:Status == 0
+      for: 1s
+      annotations:
+        summary: "Proceso MODO Caido, reiniciar servicio"
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 1 seg."
+
+    - record: job:Proceso_TCPqr_MODO:Status
+      expr: namedprocess_namegroup_num_procs{job="MODO",groupname="TCPqr"}
+
+    - alert: ProcessDownMODO
+      expr: job:Proceso_TCPqr_MODO:Status == 0
+      for: 1s
+      annotations:
+        summary: "Proceso MODO Caido, reiniciar servicio"
+        description: "El Proceso {{ $labels.groupname }} en {{ $labels.instance }} esta caido por mas de 1 seg."
+
+  - name: FileMonitoringMODO
+    rules:
+      - alert: FileModifiedRecentlyZero
+        expr: sum(file_modified_recently) != 4
+        for: 2m
+        annotations:
+          summary: "Alerta de modificacion de archivos MODO"
+          description: "Al menos uno de los archivos de log MODO no se ha escrito recientemente!"
